@@ -332,29 +332,29 @@ const Checkout: React.FC = () => {
     }
   ];
 
-  const handleCheckout = async (plan: typeof plans[0], includeRecipe: boolean) => {
-    setIsProcessing(true);
+const handleCheckout = async (plan: typeof plans[0], includeRecipe: boolean) => {
+  setIsProcessing(true);
 
-    try {
-      const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
-      if (!stripe) throw new Error('Stripe failed to load');
+  try {
+    const paymentLinks: Record<string, string> = {
+      "The Storyteller": "https://buy.stripe.com/test_6oU14m48ag6Q1hH0CBbQY02",
+      "The Keepsake": "https://buy.stripe.com/test_4gMeVc8oq7Ak4tT0CBbQY01",
+      "The Legacy": "https://buy.stripe.com/test_bJe4gyeMO6wg0dD2KJbQY00"
+    };
 
-      const { error } = await stripe.redirectToCheckout({
-        mode: 'payment',
-        lineItems: [{ price: plan.priceId, quantity: 1 }],
-        successUrl: `https://app.beforeigo.app/welcome?session_id={CHECKOUT_SESSION_ID}`,
-        cancelUrl: `https://beforeigo.app/pricing`,
-      });
-
-      if (error) throw error;
-
-    } catch (error) {
-      console.error('Checkout failed:', error);
-      alert('Failed to start checkout. Please try again.');
-    } finally {
-      setIsProcessing(false);
+    const paymentLink = paymentLinks[plan.name];
+    if (paymentLink) {
+      window.location.href = paymentLink;
+    } else {
+      throw new Error('Payment link not found');
     }
-  };
+
+  } catch (error) {
+    console.error('Checkout failed:', error);
+    alert('Failed to start checkout. Please try again.');
+    setIsProcessing(false);
+  }
+};
 
   const handleForMyself = () => {
     if (!paymentDetails) return;
