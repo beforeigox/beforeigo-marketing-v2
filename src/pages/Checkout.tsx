@@ -344,7 +344,9 @@ const handleCheckout = async (plan: typeof plans[0], includeRecipe: boolean) => 
 
     const paymentLink = paymentLinks[plan.name];
     if (paymentLink) {
-      window.location.href = paymentLink;
+      // Redirect to Stripe, which will then redirect to signup after payment
+const successUrl = encodeURIComponent(`https://app.beforeigo.app/signup?plan=${encodeURIComponent(plan.name.toLowerCase())}`);
+window.location.href = `${paymentLink}?prefilled_email={CUSTOMER_EMAIL}&success_url=${successUrl}`;
     } else {
       throw new Error('Payment link not found');
     }
