@@ -10,6 +10,6 @@ export default defineConfig({
   build: {
     // Note: Public directory copying disabled due to corrupted files
     // Files in /public have file system errors (EAGAIN)
-    copyPublicDir: false
+    copyPublicDir: true
   }
 });
