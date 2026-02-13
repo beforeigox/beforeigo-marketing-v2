@@ -35,6 +35,17 @@ const handleSubscribe = async (e: React.FormEvent) => {
     }
 
     setSubscribed(true);
+
+// Send welcome email
+fetch('https://app.beforeigo.app/api/send-email', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    type: 'newsletterWelcome',
+    to: email,
+    data: { name: '' }
+  })
+}).catch(err => console.error('Welcome email failed:', err));
     setTimeout(() => {
       setEmail('');
       setSubscribed(false);
