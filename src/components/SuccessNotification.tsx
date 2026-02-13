@@ -11,8 +11,8 @@ interface SuccessNotificationProps {
 const SuccessNotification: React.FC<SuccessNotificationProps> = ({
   isVisible,
   onClose,
-  title = "Welcome to the Waitlist!",
-  message = "Thank you for joining our waitlist! We'll be in touch soon with early access details and your exclusive 10% discount."
+  title = "Welcome to Our Newsletter!",
+message = "Thank you for subscribing! You'll receive weekly inspiration, tips, and your exclusive 10% discount code in your inbox soon."
 }) => {
   const [shouldRender, setShouldRender] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -96,9 +96,10 @@ const SuccessNotification: React.FC<SuccessNotificationProps> = ({
             <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 mb-6">
               <h4 className="font-semibold text-slate-800 mb-3 text-sm">What happens next:</h4>
               <ul className="space-y-2 text-sm text-slate-600">
-                <li className="flex items-center space-x-2">
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                  <span>Early access invitation (coming soon!)</span>
+               <li className="flex items-center space-x-2">
+ 		 <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+ 		 <span>Weekly tips & inspiration</span>
+		</li>
                 </li>
                 <li className="flex items-center space-x-2">
                   <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>

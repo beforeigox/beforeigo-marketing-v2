@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowRight, Heart, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { blogPosts, categoryColors } from '../data/blogData';
+import { supabase } from '../lib/supabase';
 
 const Blog: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -11,16 +12,38 @@ const Blog: React.FC = () => {
     return categoryColors[category] || "bg-slate-100 text-slate-700";
   };
 
-  const handleSubscribe = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) return;
+const handleSubscribe = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!email) return;
+
+  try {
+    const { error } = await supabase
+      .from('newsletter')
+      .insert([{
+        email: email,
+        source: 'blog'
+      }]);
+
+    if (error) {
+      if (error.code === '23505') {
+        alert('This email is already subscribed!');
+      } else {
+        console.error('Newsletter error:', error);
+        alert('Failed to subscribe. Please try again.');
+      }
+      return;
+    }
 
     setSubscribed(true);
     setTimeout(() => {
       setEmail('');
       setSubscribed(false);
     }, 3000);
-  };
+  } catch (error) {
+    console.error('Newsletter error:', error);
+    alert('Something went wrong. Please try again.');
+  }
+};
 
   return (
     <div className="overflow-hidden">
