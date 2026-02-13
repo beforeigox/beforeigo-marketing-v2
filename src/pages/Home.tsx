@@ -9,13 +9,13 @@ const quotes = [
     text: "The stories we tell about our past shape who we become. Every family has tales worth preserving.",
     author: "Margaret Chen",
     story: "Letters to My Grandmother",
-    image: "https://images.pexels.com/photos/4101143/pexels-photo-4101143.jpeg?auto=compress&cs=tinysrgb&w=1200"
+    image: "/margaret-photo.png"
   },
   {
     text: "I never knew my father could laugh so hard until I read his childhood memories. Stories reveal the person behind the parent.",
     author: "David Rodriguez",
     story: "Dad's Hidden Adventures",
-    image: "https://images.pexels.com/photos/8617549/pexels-photo-8617549.jpeg?auto=compress&cs=tinysrgb&w=1200"
+    image: "/david-photo.png"
   },
   {
     text: "Our family recipes weren't just ingredients—they were love letters passed down through generations.",
@@ -24,7 +24,6 @@ const quotes = [
     image: "/grandma2.jpg"
   }
 ];
-
 // Isolated Newsletter Form Component - This prevents the main component from re-rendering
 const NewsletterForm: React.FC<{ onClose: () => void; onSuccess: () => void }> = ({ onClose, onSuccess }) => {
   // State is isolated to this component only
