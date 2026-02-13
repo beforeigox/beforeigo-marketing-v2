@@ -116,12 +116,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
             {/* CTA Buttons */}
             <div className="hidden lg:flex items-center space-x-3">
-              <button
-                onClick={() => setShowSignIn(true)}
-                className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-all duration-300"
-              >
-                <User className="h-5 w-5" />
-              </button>
+             <a href="https://app.beforeigo.app/login"
+  className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-all duration-300"
+>
+  <User className="h-5 w-5" />
+</a>
+               
               <button
                 onClick={handlePurchaseClick}
                 className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-rose-600 border border-rose-200 rounded-full hover:bg-rose-50 transition-all duration-300 transform hover:scale-105"
@@ -165,16 +165,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     {item.name}
                   </Link>
                 ))}
-                <button
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    setShowSignIn(true);
-                  }}
-                  className="flex items-center space-x-2 text-slate-600 w-fit"
-                >
-                  <User className="h-4 w-4" />
-                  <span>Sign in</span>
-                </button>
+             <a href="https://app.beforeigo.app/login"
+  className="flex items-center space-x-2 text-slate-600 w-fit"
+>
+  <User className="h-4 w-4" />
+  <span>Sign in</span>
+</a>
                 <button
                   onClick={() => {
                     setIsMenuOpen(false);
