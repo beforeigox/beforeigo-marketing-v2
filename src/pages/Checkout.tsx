@@ -586,8 +586,10 @@ window.location.href = `${paymentLink}?prefilled_email={CUSTOMER_EMAIL}&success_
 >
   <Package className="h-5 w-5" />
   <span>Order Physical Journal</span>
-  <ArrowRight className="h-5 w-5" />
+<ArrowRight className="h-5 w-5" />
 </a>
+                </div>
+                
                 <p className="text-xs text-slate-500 italic">
                   Printed on-demand and shipped directly to you. Each journal is custom-made for the role you choose.
                 </p>
