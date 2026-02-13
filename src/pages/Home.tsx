@@ -65,8 +65,20 @@ const NewsletterForm: React.FC<{ onClose: () => void; onSuccess: () => void }> =
       }
 
       onClose();
-      onSuccess();
-      setFormData({ name: '', email: '' });
+	onSuccess();
+
+// Send welcome email (don't await - fire and forget)
+fetch('https://app.beforeigo.app/api/send-email', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    type: 'newsletterWelcome',
+    to: formData.email,
+    data: { name: formData.name }
+  })
+}).catch(err => console.error('Welcome email failed:', err));
+
+setFormData({ name: '', email: '' });
     } catch (error) {
       console.error('Newsletter error:', error);
       alert('Something went wrong. Please try again.');
