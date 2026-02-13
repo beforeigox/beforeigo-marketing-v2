@@ -581,16 +581,13 @@ window.location.href = `${paymentLink}?prefilled_email={CUSTOMER_EMAIL}&success_
                     <div className="text-sm text-slate-600 mb-1">Starting at</div>
                     <div className="text-3xl font-bold text-slate-900">$29</div>
                   </div>
-                  <button
-                    onClick={() => navigate('/physical-journal')}
-                    className="bg-gradient-to-r from-amber-600 to-orange-600 text-white px-8 py-4 rounded-xl font-semibold hover:from-amber-700 hover:to-orange-700 transition-all shadow-lg hover:shadow-xl flex items-center space-x-2"
-                  >
-                    <Package className="h-5 w-5" />
-                    <span>Order Physical Journal</span>
-                    <ArrowRight className="h-5 w-5" />
-                  </button>
-                </div>
-
+             href="https://buy.stripe.com/test_9B69AS6gibQA6C1853bQY03"
+  className="bg-gradient-to-r from-amber-600 to-orange-600 text-white px-8 py-4 rounded-xl font-semibold hover:from-amber-700 hover:to-orange-700 transition-all shadow-lg hover:shadow-xl flex items-center space-x-2"
+>
+  <Package className="h-5 w-5" />
+  <span>Order Physical Journal</span>
+  <ArrowRight className="h-5 w-5" />
+</a>
                 <p className="text-xs text-slate-500 italic">
                   Printed on-demand and shipped directly to you. Each journal is custom-made for the role you choose.
                 </p>
