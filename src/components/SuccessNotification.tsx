@@ -96,10 +96,9 @@ message = "Thank you for subscribing! You'll receive weekly inspiration, tips, a
             <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 mb-6">
               <h4 className="font-semibold text-slate-800 mb-3 text-sm">What happens next:</h4>
               <ul className="space-y-2 text-sm text-slate-600">
-               <li className="flex items-center space-x-2">
- 		 <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
- 		 <span>Weekly tips & inspiration</span>
-		</li>
+                <li className="flex items-center space-x-2">
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                  <span>Weekly tips & inspiration</span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
