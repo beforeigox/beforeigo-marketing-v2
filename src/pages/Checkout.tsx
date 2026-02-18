@@ -337,15 +337,16 @@ const handleCheckout = async (plan: typeof plans[0], includeRecipe: boolean) => 
 
   try {
     const paymentLinks: Record<string, string> = {
-      "The Storyteller": "https://buy.stripe.com/test_6oU14m48ag6Q1hH0CBbQY02",
-      "The Keepsake": "https://buy.stripe.com/test_4gMeVc8oq7Ak4tT0CBbQY01",
-      "The Legacy": "https://buy.stripe.com/test_bJe4gyeMO6wg0dD2KJbQY00"
-    };
+  "The Storyteller": "https://buy.stripe.com/28EfZa2kF86Rd8F2px3gk03",
+  "The Keepsake": "https://buy.stripe.com/28E14g8J30Epb0xd4b3gk04",
+  "The Legacy": "https://buy.stripe.com/7sYbIUbVfaeZc4B0hp3gk05"
+};
 
     const paymentLink = paymentLinks[plan.name];
     if (paymentLink) {
       // Redirect to Stripe, which will then redirect to signup after payment
-const successUrl = encodeURIComponent(`https://app.beforeigo.app/signup?plan=${encodeURIComponent(plan.name.toLowerCase())}`);
+const planParam = plan.name.toLowerCase().replace(/\s+/g, '');
+const successUrl = encodeURIComponent(`https://app.beforeigo.app/gift-choice?plan=${planParam}&session_id={CHECKOUT_SESSION_ID}`);
 window.location.href = `${paymentLink}?prefilled_email={CUSTOMER_EMAIL}&success_url=${successUrl}`;
     } else {
       throw new Error('Payment link not found');
@@ -581,7 +582,7 @@ window.location.href = `${paymentLink}?prefilled_email={CUSTOMER_EMAIL}&success_
                     <div className="text-sm text-slate-600 mb-1">Starting at</div>
                     <div className="text-3xl font-bold text-slate-900">$29</div>
                   </div>
-<a href="https://buy.stripe.com/test_9B69AS6gibQA6C1853bQY03"
+<a href="https://buy.stripe.com/4gMaEQ1gBdrbd8F8NV3gk02"
   className="bg-gradient-to-r from-amber-600 to-orange-600 text-white px-8 py-4 rounded-xl font-semibold hover:from-amber-700 hover:to-orange-700 transition-all shadow-lg hover:shadow-xl flex items-center space-x-2"
 >
   <Package className="h-5 w-5" />
