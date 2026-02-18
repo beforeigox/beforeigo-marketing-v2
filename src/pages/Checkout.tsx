@@ -226,7 +226,74 @@ const GiftSuccessModal: React.FC<GiftSuccessModalProps> = ({ isOpen, giftEmail, 
     </div>
   );
 };
+interface RecipeUpsellModalProps {
+  isOpen: boolean;
+  plan: typeof plans[0];
+  onAccept: () => void;
+  onDecline: () => void;
+  onClose: () => void;
+}
 
+const RecipeUpsellModal: React.FC<RecipeUpsellModalProps> = ({ isOpen, plan, onAccept, onDecline, onClose }) => {
+  if (!isOpen) return null;
+
+  const savings = 3;
+  const addOnPrice = 5;
+
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="relative max-w-md w-full rounded-3xl overflow-hidden" style={{ boxShadow: '0 25px 50px -12px rgba(143, 17, 51, 0.4)' }}>
+        <div className="absolute inset-0 rounded-3xl z-0" style={{ background: 'linear-gradient(135deg, #8f1133, #FAF7F2, #8f1133, #FAF7F2)', backgroundSize: '300% 300%', animation: 'gradientShift 3s ease infinite', padding: '2px' }}></div>
+        
+        <div className="relative z-10 bg-white rounded-3xl overflow-hidden">
+          <div className="relative px-8 pt-8 pb-6 text-center" style={{ backgroundColor: '#8f1133' }}>
+            <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full text-white opacity-70 hover:opacity-100">
+              <X className="h-5 w-5" />
+            </button>
+
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <Sparkles className="h-5 w-5 text-yellow-300 fill-yellow-300" />
+              <span className="text-yellow-300 text-xs font-bold uppercase tracking-widest">One-Time Offer</span>
+              <Sparkles className="h-5 w-5 text-yellow-300 fill-yellow-300" />
+            </div>
+
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}>
+              <ChefHat className="h-8 w-8 text-white" />
+            </div>
+
+            <h2 className="text-2xl font-serif font-bold text-white mb-1">Preserve Your Family's Recipes Forever</h2>
+            <p className="text-white opacity-80 text-sm">Add your Recipe Book for only ${addOnPrice} — save ${savings} vs. purchasing separately!</p>
+          </div>
+
+          <div className="px-8 py-6">
+            <ul className="space-y-2 mb-6">
+              {['Save unlimited family recipes', 'Add photos to each recipe', 'Organize by category', 'Beautiful printable format', 'Preserve for generations'].map((item) => (
+                <li key={item} className="flex items-center gap-3 text-sm">
+                  <div className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: '#F5E6EA' }}>
+                    <Check className="h-3 w-3" style={{ color: '#8f1133' }} />
+                  </div>
+                  {item}
+                </li>
+              ))}
+            </ul>
+
+            <button onClick={onAccept} className="w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 mb-3" style={{ backgroundColor: '#8f1133' }}>
+              <ChefHat className="h-5 w-5" />
+              <span>Add Recipe Book for ${addOnPrice}</span>
+              <ArrowRight className="h-5 w-5" />
+            </button>
+
+            <button onClick={onDecline} className="w-full py-3 text-sm text-gray-400 hover:text-gray-600">
+              No thanks, just {plan.name} for ${plan.price}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <style>{`@keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }`}</style>
+    </div>
+  );
+};
 const Checkout: React.FC = () => {
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -239,6 +306,8 @@ const Checkout: React.FC = () => {
   const [showGiftSuccess, setShowGiftSuccess] = useState(false);
   const [giftEmail, setGiftEmail] = useState('');
   const [giftMessage, setGiftMessage] = useState('');
+  const [showRecipeUpsell, setShowRecipeUpsell] = useState(false);
+  const [pendingPlan, setPendingPlan] = useState<typeof plans[0] | null>(null);
   const [paymentDetails, setPaymentDetails] = useState<{
     plan: typeof plans[0];
     paymentId: string;
@@ -333,21 +402,31 @@ const Checkout: React.FC = () => {
   ];
 
 const handleCheckout = async (plan: typeof plans[0], includeRecipe: boolean) => {
+  // Show recipe upsell for Storyteller & Keepsake only
+  if ((plan.name === "The Storyteller" || plan.name === "The Keepsake") && !includeRecipe) {
+    setPendingPlan(plan);
+    setShowRecipeUpsell(true);
+    return;
+  }
+
   setIsProcessing(true);
 
   try {
     const paymentLinks: Record<string, string> = {
-  "The Storyteller": "https://buy.stripe.com/28EfZa2kF86Rd8F2px3gk03",
-  "The Keepsake": "https://buy.stripe.com/28E14g8J30Epb0xd4b3gk04",
-  "The Legacy": "https://buy.stripe.com/7sYbIUbVfaeZc4B0hp3gk05"
-};
+      "The Storyteller": includeRecipe 
+        ? "https://buy.stripe.com/8x2cMYe3n4UF2u1d4b3gk06" // Storyteller + Recipe $31
+        : "https://buy.stripe.com/28EfZa2kF86Rd8F2px3gk03", // Storyteller $26
+      "The Keepsake": includeRecipe
+        ? "https://buy.stripe.com/8x24gs5wR9aVfgNd4b3gk07" // Keepsake + Recipe $40
+        : "https://buy.stripe.com/28E14g8J30Epb0xd4b3gk04", // Keepsake $35
+      "The Legacy": "https://buy.stripe.com/7sYbIUbVfaeZc4B0hp3gk05" // Already includes recipe
+    };
 
     const paymentLink = paymentLinks[plan.name];
     if (paymentLink) {
-      // Redirect to Stripe, which will then redirect to signup after payment
-const planParam = plan.name.toLowerCase().replace(/\s+/g, '');
-const successUrl = encodeURIComponent(`https://app.beforeigo.app/gift-choice?plan=${planParam}&session_id={CHECKOUT_SESSION_ID}`);
-window.location.href = `${paymentLink}?prefilled_email={CUSTOMER_EMAIL}&success_url=${successUrl}`;
+      const planParam = plan.name.toLowerCase().replace(/\s+/g, '');
+      const successUrl = encodeURIComponent(`https://app.beforeigo.app/gift-choice?plan=${planParam}${includeRecipe ? '_recipe' : ''}&session_id={CHECKOUT_SESSION_ID}`);
+      window.location.href = `${paymentLink}?prefilled_email={CUSTOMER_EMAIL}&success_url=${successUrl}`;
     } else {
       throw new Error('Payment link not found');
     }
@@ -356,6 +435,20 @@ window.location.href = `${paymentLink}?prefilled_email={CUSTOMER_EMAIL}&success_
     console.error('Checkout failed:', error);
     alert('Failed to start checkout. Please try again.');
     setIsProcessing(false);
+  }
+};
+
+const handleRecipeAccept = () => {
+  setShowRecipeUpsell(false);
+  if (pendingPlan) {
+    handleCheckout(pendingPlan, true); // includeRecipe = true
+  }
+};
+
+const handleRecipeDecline = () => {
+  setShowRecipeUpsell(false);
+  if (pendingPlan) {
+    handleCheckout(pendingPlan, false); // includeRecipe = false
   }
 };
 
@@ -400,6 +493,13 @@ window.location.href = `${paymentLink}?prefilled_email={CUSTOMER_EMAIL}&success_
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Modals */}
+     <RecipeUpsellModal
+       isOpen={showRecipeUpsell}
+       plan={pendingPlan || plans[0]}
+       onAccept={handleRecipeAccept}
+       onDecline={handleRecipeDecline}
+       onClose={() => setShowRecipeUpsell(false)}
+      />
       <RecipientSelectionModal
         isOpen={showRecipientSelection}
         onForMyself={handleForMyself}
