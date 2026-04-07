@@ -308,6 +308,7 @@ const Checkout: React.FC = () => {
   const [giftMessage, setGiftMessage] = useState('');
   const [showRecipeUpsell, setShowRecipeUpsell] = useState(false);
   const [pendingPlan, setPendingPlan] = useState<typeof plans[0] | null>(null);
+  const [recipeDeclined, setRecipeDeclined] = useState(false);
   const [paymentDetails, setPaymentDetails] = useState<{
     plan: typeof plans[0];
     paymentId: string;
@@ -403,7 +404,7 @@ const Checkout: React.FC = () => {
 
 const handleCheckout = async (plan: typeof plans[0], includeRecipe: boolean) => {
   // Show recipe upsell for Storyteller & Keepsake only
-  if ((plan.name === "The Storyteller" || plan.name === "The Keepsake") && !includeRecipe) {
+  if ((plan.name === "The Storyteller" || plan.name === "The Keepsake") && !includeRecipe && !recipeDeclined) {
     setPendingPlan(plan);
     setShowRecipeUpsell(true);
     return;
@@ -446,9 +447,10 @@ const handleRecipeAccept = () => {
 };
 
 const handleRecipeDecline = () => {
+  setRecipeDeclined(true);
   setShowRecipeUpsell(false);
   if (pendingPlan) {
-    handleCheckout(pendingPlan, false); // includeRecipe = false
+    handleCheckout(pendingPlan, false);
   }
 };
 
