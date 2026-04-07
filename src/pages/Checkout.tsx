@@ -500,7 +500,10 @@ const handleRecipeDecline = () => {
        plan={pendingPlan || plans[0]}
        onAccept={handleRecipeAccept}
        onDecline={handleRecipeDecline}
-       onClose={() => setShowRecipeUpsell(false)}
+       onClose={() => {
+  setShowRecipeUpsell(false);
+  setRecipeDeclined(false);
+}}
       />
       <RecipientSelectionModal
         isOpen={showRecipientSelection}
