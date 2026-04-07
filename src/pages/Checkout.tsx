@@ -402,9 +402,9 @@ const Checkout: React.FC = () => {
     }
   ];
 
-const handleCheckout = async (plan: typeof plans[0], includeRecipe: boolean) => {
+const handleCheckout = async (plan: typeof plans[0], includeRecipe: boolean, skipUpsell: boolean = false) => {
   // Show recipe upsell for Storyteller & Keepsake only
-  if ((plan.name === "The Storyteller" || plan.name === "The Keepsake") && !includeRecipe && !recipeDeclined) {
+  if ((plan.name === "The Storyteller" || plan.name === "The Keepsake") && !includeRecipe && !skipUpsell) {
     setPendingPlan(plan);
     setShowRecipeUpsell(true);
     return;
@@ -439,10 +439,10 @@ const handleCheckout = async (plan: typeof plans[0], includeRecipe: boolean) => 
   }
 };
 
-const handleRecipeAccept = () => {
+const handleRecipeDecline = () => {
   setShowRecipeUpsell(false);
   if (pendingPlan) {
-    handleCheckout(pendingPlan, true); // includeRecipe = true
+    handleCheckout(pendingPlan, false, true);
   }
 };
 
