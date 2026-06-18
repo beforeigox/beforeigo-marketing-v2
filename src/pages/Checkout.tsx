@@ -1,234 +1,87 @@
 import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Check, Star, BookHeart, Users, Crown, ArrowRight, Shield, Clock, Heart, X, ChefHat, Sparkles, User, BookOpen, Package } from 'lucide-react';
-import { loadStripe } from '@stripe/stripe-js';
+import { useNavigate } from 'react-router-dom';
+import { Check, BookHeart, Users, Crown, ArrowRight, Shield, Clock, Heart, X, ChefHat, Sparkles, User, BookOpen, Package } from 'lucide-react';
 
-// Modal Components - Defined outside to prevent re-renders
-interface RecipientSelectionModalProps {
-  isOpen: boolean;
-  onForMyself: () => void;
-  onForSomeoneElse: () => void;
-}
+// ===========================================================================
+// Shared style tokens (brand)
+// ===========================================================================
+const BURGUNDY = '#8f1133';
+const BURGUNDY_DARK = '#7a0e2b';
+const CREAM = '#FAF7F2';
+const INK = '#3A3A3A';
+const MUTE = '#6B5B73';
+const TILE = '#F5E6EA';
+const BORDER = '#EAD7DD';
+const serif = { fontFamily: 'Crimson Text, serif' };
 
-const RecipientSelectionModal: React.FC<RecipientSelectionModalProps> = ({ isOpen, onForMyself, onForSomeoneElse }) => {
-  if (!isOpen) return null;
+// ===========================================================================
+// Plans (module scope so types resolve everywhere)
+// ===========================================================================
+const plans = [
+  {
+    name: 'The Storyteller',
+    subtitle: 'Capture your core memories in a beautiful, lasting format',
+    price: 26,
+    features: [
+      'Guided question sets for any family role',
+      'Text-based storytelling with elegant interface',
+      'Add up to 50 photos',
+      'Beautiful PDF export',
+      'Lifetime digital backup',
+    ],
+    popular: false,
+    icon: BookHeart,
+  },
+  {
+    name: 'The Keepsake',
+    subtitle: 'A richer personal experience with audio and video',
+    price: 35,
+    features: [
+      'Everything in Storyteller, plus:',
+      'Audio recording with voice capture',
+      'Up to 250 photos & video clips',
+      'Family sharing portal (10 members)',
+      'Premium digital copies',
+    ],
+    popular: true,
+    icon: Heart,
+  },
+  {
+    name: 'The Legacy',
+    subtitle: 'The ultimate immersive life-story archive',
+    price: 44,
+    features: [
+      'Everything in Keepsake, plus:',
+      'AI voice cloning for audiobook narration',
+      'AI handwriting font creation',
+      'Unlimited photos & videos',
+      'AI Story Weaver™ narrative generation',
+    ],
+    popular: false,
+    icon: Crown,
+  },
+] as const;
 
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden">
-        <div className="relative bg-gradient-to-br from-green-50 to-emerald-50 p-8 text-center">
-          <div className="inline-flex p-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl mb-4">
-            <Check className="h-8 w-8 text-white" />
-          </div>
+type Plan = (typeof plans)[number];
 
-          <h2 className="text-2xl font-serif text-slate-900 mb-2">
-            Payment Successful!
-          </h2>
-          <p className="text-slate-600 leading-relaxed">
-            Who is this purchase for?
-          </p>
-        </div>
+const testimonials = [
+  { name: 'Sarah M.', text: "The Keepsake plan was perfect for our family. The audio recordings helped me remember stories I'd completely forgotten." },
+  { name: 'Robert K.', text: 'Worth every penny. My children will treasure this forever.' },
+  { name: 'Maria L.', text: 'The support team was incredible — they helped me through every step.' },
+];
 
-        <div className="p-8 space-y-4">
-          <button
-            onClick={onForMyself}
-            className="w-full flex items-center justify-between p-6 border-2 border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all group"
-          >
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-blue-100 rounded-xl group-hover:bg-blue-500 transition-colors">
-                <User className="h-6 w-6 text-blue-600 group-hover:text-white" />
-              </div>
-              <div className="text-left">
-                <div className="font-semibold text-slate-900">For Myself</div>
-                <div className="text-sm text-slate-600">Start creating your story now</div>
-              </div>
-            </div>
-            <ArrowRight className="h-5 w-5 text-slate-400 group-hover:text-blue-500" />
-          </button>
+const guarantees = [
+  { icon: Shield, title: '30-Day Money Back', description: 'Not satisfied? A full refund within 30 days, no questions.' },
+  { icon: Clock, title: 'No Rush, No Pressure', description: 'Take all the time you need to complete your story.' },
+  { icon: Heart, title: 'Satisfaction Promise', description: "We'll work with you until you love your journal." },
+];
 
-          <button
-            onClick={onForSomeoneElse}
-            className="w-full flex items-center justify-between p-6 border-2 border-slate-200 rounded-xl hover:border-amber-500 hover:bg-amber-50 transition-all group"
-          >
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-amber-100 rounded-xl group-hover:bg-amber-500 transition-colors">
-                <Heart className="h-6 w-6 text-amber-600 group-hover:text-white" />
-              </div>
-              <div className="text-left">
-                <div className="font-semibold text-slate-900">For Someone Else (Gift)</div>
-                <div className="text-sm text-slate-600">Send this as a gift</div>
-              </div>
-            </div>
-            <ArrowRight className="h-5 w-5 text-slate-400 group-hover:text-amber-500" />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-interface GiftFormModalProps {
-  isOpen: boolean;
-  giftEmail: string;
-  giftMessage: string;
-  onEmailChange: (email: string) => void;
-  onMessageChange: (message: string) => void;
-  onSend: () => void;
-  onCancel: () => void;
-}
-
-const GiftFormModal: React.FC<GiftFormModalProps> = ({
-  isOpen,
-  giftEmail,
-  giftMessage,
-  onEmailChange,
-  onMessageChange,
-  onSend,
-  onCancel
-}) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden">
-        <div className="relative bg-gradient-to-br from-amber-50 to-orange-50 p-8 text-center">
-          <button
-            onClick={onCancel}
-            className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors p-2 hover:bg-white rounded-full"
-          >
-            <X className="h-6 w-6" />
-          </button>
-
-          <div className="inline-flex p-4 bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl mb-4">
-            <Heart className="h-8 w-8 text-white" />
-          </div>
-
-          <h2 className="text-2xl font-serif text-slate-900 mb-2">
-            Send Your Gift
-          </h2>
-          <p className="text-slate-600 leading-relaxed">
-            Enter the recipient's email to send them their Before I Go gift
-          </p>
-        </div>
-
-        <div className="p-8">
-          <div className="space-y-4 mb-6">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Recipient's Email
-              </label>
-              <input
-                type="email"
-                value={giftEmail}
-                onChange={(e) => onEmailChange(e.target.value)}
-                placeholder="recipient@example.com"
-                autoComplete="email"
-                autoFocus
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Personal Message (Optional)
-              </label>
-              <textarea
-                value={giftMessage}
-                onChange={(e) => onMessageChange(e.target.value)}
-                placeholder="Add a personal message to your gift..."
-                rows={3}
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors resize-none"
-              />
-            </div>
-          </div>
-
-          <div className="flex space-x-3">
-            <button
-              onClick={onCancel}
-              className="flex-1 bg-slate-200 text-slate-700 py-3 rounded-xl font-medium hover:bg-slate-300 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={onSend}
-              className="flex-1 bg-amber-600 text-white py-3 rounded-xl font-semibold hover:bg-amber-700 transition-colors"
-            >
-              Send Gift
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-interface GiftSuccessModalProps {
-  isOpen: boolean;
-  giftEmail: string;
-  giftMessage: string;
-  onClose: () => void;
-}
-
-const GiftSuccessModal: React.FC<GiftSuccessModalProps> = ({ isOpen, giftEmail, giftMessage, onClose }) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden">
-        <div className="relative bg-gradient-to-br from-green-50 to-emerald-50 p-8 text-center">
-          <div className="inline-flex p-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl mb-4">
-            <Check className="h-12 w-12 text-white" />
-          </div>
-
-          <h2 className="text-3xl font-serif text-slate-900 mb-3">
-            Gift Sent Successfully!
-          </h2>
-          <p className="text-slate-600 leading-relaxed text-lg">
-            Your gift has been sent to<br />
-            <span className="font-semibold text-slate-900">{giftEmail}</span>
-          </p>
-        </div>
-
-        <div className="p-8">
-          <div className="bg-blue-50 rounded-xl p-6 mb-6">
-            <h3 className="font-semibold text-slate-900 mb-3">What happens next?</h3>
-            <ul className="space-y-3 text-sm text-slate-700">
-              <li className="flex items-start space-x-2">
-                <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>The recipient will receive an email with a special gift link</span>
-              </li>
-              <li className="flex items-start space-x-2">
-                <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>They'll create their account and start their story journey</span>
-              </li>
-              <li className="flex items-start space-x-2">
-                <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>They can begin capturing memories right away</span>
-              </li>
-            </ul>
-          </div>
-
-          {giftMessage && (
-            <div className="bg-slate-50 rounded-xl p-4 mb-6">
-              <p className="text-sm text-slate-600 mb-1">Your message:</p>
-              <p className="text-slate-700 italic">"{giftMessage}"</p>
-            </div>
-          )}
-
-          <button
-            onClick={onClose}
-            className="w-full bg-rose-600 text-white py-4 rounded-xl font-semibold hover:bg-rose-700 transition-colors"
-          >
-            Return to Home
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+// ===========================================================================
+// Recipe upsell modal
+// ===========================================================================
 interface RecipeUpsellModalProps {
   isOpen: boolean;
-  plan: typeof plans[0];
+  plan: Plan;
   onAccept: () => void;
   onDecline: () => void;
   onClose: () => void;
@@ -236,361 +89,176 @@ interface RecipeUpsellModalProps {
 
 const RecipeUpsellModal: React.FC<RecipeUpsellModalProps> = ({ isOpen, plan, onAccept, onDecline, onClose }) => {
   if (!isOpen) return null;
-
   const savings = 3;
   const addOnPrice = 5;
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="relative max-w-md w-full rounded-3xl overflow-hidden" style={{ boxShadow: '0 25px 50px -12px rgba(143, 17, 51, 0.4)' }}>
-        <div className="absolute inset-0 rounded-3xl z-0" style={{ background: 'linear-gradient(135deg, #8f1133, #FAF7F2, #8f1133, #FAF7F2)', backgroundSize: '300% 300%', animation: 'gradientShift 3s ease infinite', padding: '2px' }}></div>
-        
+        <div className="absolute inset-0 rounded-3xl z-0" style={{ background: 'linear-gradient(135deg, #8f1133, #FAF7F2, #8f1133, #FAF7F2)', backgroundSize: '300% 300%', animation: 'gradientShift 3s ease infinite', padding: '2px' }} />
         <div className="relative z-10 bg-white rounded-3xl overflow-hidden">
-          <div className="relative px-8 pt-8 pb-6 text-center" style={{ backgroundColor: '#8f1133' }}>
+          <div className="relative px-8 pt-8 pb-6 text-center" style={{ backgroundColor: BURGUNDY }}>
             <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full text-white opacity-70 hover:opacity-100">
               <X className="h-5 w-5" />
             </button>
-
             <div className="flex items-center justify-center gap-2 mb-3">
               <Sparkles className="h-5 w-5 text-yellow-300 fill-yellow-300" />
               <span className="text-yellow-300 text-xs font-bold uppercase tracking-widest">One-Time Offer</span>
               <Sparkles className="h-5 w-5 text-yellow-300 fill-yellow-300" />
             </div>
-
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}>
               <ChefHat className="h-8 w-8 text-white" />
             </div>
-
-            <h2 className="text-2xl font-serif font-bold text-white mb-1">Preserve Your Family's Recipes Forever</h2>
-            <p className="text-white opacity-80 text-sm">Add your Recipe Book for only ${addOnPrice} — save ${savings} vs. purchasing separately!</p>
+            <h2 className="text-2xl font-bold text-white mb-1" style={serif}>Preserve Your Family's Recipes Forever</h2>
+            <p className="text-white opacity-80 text-sm">Add your Recipe Book for only ${addOnPrice} — save ${savings} vs. buying separately</p>
           </div>
-
           <div className="px-8 py-6">
             <ul className="space-y-2 mb-6">
               {['Save unlimited family recipes', 'Add photos to each recipe', 'Organize by category', 'Beautiful printable format', 'Preserve for generations'].map((item) => (
-                <li key={item} className="flex items-center gap-3 text-sm">
-                  <div className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: '#F5E6EA' }}>
-                    <Check className="h-3 w-3" style={{ color: '#8f1133' }} />
+                <li key={item} className="flex items-center gap-3 text-sm" style={{ color: INK }}>
+                  <div className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: TILE }}>
+                    <Check className="h-3 w-3" style={{ color: BURGUNDY }} />
                   </div>
                   {item}
                 </li>
               ))}
             </ul>
-
-            <button onClick={onAccept} className="w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 mb-3" style={{ backgroundColor: '#8f1133' }}>
+            <button onClick={onAccept} className="w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 mb-3 transition-colors" style={{ backgroundColor: BURGUNDY }}>
               <ChefHat className="h-5 w-5" />
               <span>Add Recipe Book for ${addOnPrice}</span>
               <ArrowRight className="h-5 w-5" />
             </button>
-
-            <button onClick={onDecline} className="w-full py-3 text-sm text-gray-400 hover:text-gray-600">
+            <button onClick={onDecline} className="w-full py-3 text-sm" style={{ color: MUTE }}>
               No thanks, just {plan.name} for ${plan.price}
             </button>
           </div>
         </div>
       </div>
-
       <style>{`@keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }`}</style>
     </div>
   );
 };
+
+// ===========================================================================
+// Checkout page
+// ===========================================================================
 const Checkout: React.FC = () => {
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<typeof plans[0] | null>(null);
-  const [includeRecipeBook, setIncludeRecipeBook] = useState(false);
-
-  // Post-payment flow states
-  const [showRecipientSelection, setShowRecipientSelection] = useState(false);
-  const [showGiftForm, setShowGiftForm] = useState(false);
-  const [showGiftSuccess, setShowGiftSuccess] = useState(false);
-  const [giftEmail, setGiftEmail] = useState('');
-  const [giftMessage, setGiftMessage] = useState('');
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [showRecipeUpsell, setShowRecipeUpsell] = useState(false);
-  const [pendingPlan, setPendingPlan] = useState<typeof plans[0] | null>(null);
-  const [recipeDeclined, setRecipeDeclined] = useState(false);
-  const [paymentDetails, setPaymentDetails] = useState<{
-    plan: typeof plans[0];
-    paymentId: string;
-    includeRecipe: boolean;
-  } | null>(null);
+  const [pendingPlan, setPendingPlan] = useState<Plan | null>(null);
 
-  const plans = [
-    {
-      name: "The Storyteller",
-      subtitle: "Perfect for capturing core memories in a beautiful, lasting format",
-      price: 26,
-      priceId: "price_1SwerICu1M0mOVHk4sJk5mNv",
-      features: [
-        "Guided question sets for any family role",
-        "Text-based storytelling with elegant interface",
-        "Add up to 50 photos",
-        "Beautiful PDF export",
-        "Lifetime digital backup"
-      ],
-      popular: false,
-      icon: BookHeart,
-      color: "slate"
-    },
-    {
-      name: "The Keepsake",
-      subtitle: "Richer personal experience with audio and video",
-      price: 35,
-      priceId: "price_1SwerYCu1M0mOVHkekUfREEd",
-      features: [
-        "Everything in Storyteller, plus:",
-        "Audio recording with voice capture",
-        "Up to 250 photos & video clips",
-        "Family sharing portal (10 members)",
-        "Premium digital copies"
-      ],
-      popular: true,
-      icon: Heart,
-      color: "rose"
-    },
-    {
-      name: "The Legacy",
-      subtitle: "Ultimate AI-powered immersive life story archive",
-      price: 44,
-      priceId: "price_1SwesHCu1M0mOVHkOuOkAgio",
-      features: [
-        "Everything in Keepsake, plus:",
-        "AI voice cloning for audiobook narration",
-        "AI handwriting font creation",
-        "Unlimited photos & videos",
-        "AI Story Weaver™ narrative generation"
-      ],
-      popular: false,
-      icon: Crown,
-      color: "amber"
-    }
-  ];
-
-  const testimonials = [
-    {
-      name: "Sarah M.",
-      text: "The Keepsake plan was perfect for our family. The audio recordings helped me remember stories I'd completely forgotten!",
-      rating: 5
-    },
-    {
-      name: "Robert K.",
-      text: "Worth every penny. My children will treasure this journal forever.",
-      rating: 5
-    },
-    {
-      name: "Maria L.",
-      text: "The support team was incredible - they helped me through every step of the process.",
-      rating: 5
-    }
-  ];
-
-  const guarantees = [
-    {
-      icon: Shield,
-      title: "30-Day Money Back Guarantee",
-      description: "Not satisfied? Get a full refund within 30 days."
-    },
-    {
-      icon: Clock,
-      title: "No Rush, No Pressure",
-      description: "Take as long as you need to complete your story."
-    },
-    {
-      icon: Heart,
-      title: "100% Satisfaction Promise",
-      description: "We'll work with you until you love your journal."
-    }
-  ];
-
-const handleCheckout = async (plan: typeof plans[0], includeRecipe: boolean, skipUpsell: boolean = false) => {
-  // Show recipe upsell for Storyteller & Keepsake only
-  if ((plan.name === "The Storyteller" || plan.name === "The Keepsake") && !includeRecipe && !skipUpsell) {
-    setPendingPlan(plan);
-    setShowRecipeUpsell(true);
-    return;
-  }
-
-  setIsProcessing(true);
-
-  try {
-    const paymentLinks: Record<string, string> = {
-      "The Storyteller": includeRecipe 
-        ? "https://buy.stripe.com/8x2cMYe3n4UF2u1d4b3gk06" // Storyteller + Recipe $31
-        : "https://buy.stripe.com/28EfZa2kF86Rd8F2px3gk03", // Storyteller $26
-      "The Keepsake": includeRecipe
-        ? "https://buy.stripe.com/8x24gs5wR9aVfgNd4b3gk07" // Keepsake + Recipe $40
-        : "https://buy.stripe.com/28E14g8J30Epb0xd4b3gk04", // Keepsake $35
-      "The Legacy": "https://buy.stripe.com/7sYbIUbVfaeZc4B0hp3gk05" // Already includes recipe
-    };
-
-    const paymentLink = paymentLinks[plan.name];
-    if (paymentLink) {
-      const planParam = plan.name.toLowerCase().replace(/\s+/g, '');
-      const successUrl = encodeURIComponent(`https://app.beforeigo.app/gift-choice?plan=${planParam}${includeRecipe ? '_recipe' : ''}&session_id={CHECKOUT_SESSION_ID}`);
-      window.location.href = `${paymentLink}?prefilled_email={CUSTOMER_EMAIL}&success_url=${successUrl}`;
-    } else {
-      throw new Error('Payment link not found');
-    }
-
-  } catch (error) {
-    console.error('Checkout failed:', error);
-    alert('Failed to start checkout. Please try again.');
-    setIsProcessing(false);
-  }
-};
-
-const handleRecipeDecline = () => {
-  setShowRecipeUpsell(false);
-  if (pendingPlan) {
-    handleCheckout(pendingPlan, false, true);
-  }
-};
-
-const handleRecipeDecline = () => {
-  setRecipeDeclined(true);
-  setShowRecipeUpsell(false);
-  if (pendingPlan) {
-    handleCheckout(pendingPlan, false);
-  }
-};
-
-  const handleForMyself = () => {
-    if (!paymentDetails) return;
-
-    const params = new URLSearchParams({
-      plan: paymentDetails.plan.name.toLowerCase(),
-      payment_id: paymentDetails.paymentId,
-      recipe_book: paymentDetails.includeRecipe.toString()
-    });
-    navigate(`/account-setup?${params.toString()}`);
-  };
-
-  const handleForSomeoneElse = () => {
-    setShowRecipientSelection(false);
-    setShowGiftForm(true);
-  };
-
-  const handleSendGift = async () => {
-    if (!giftEmail) {
-      alert('Please enter recipient email address');
+  const handleCheckout = async (plan: Plan, includeRecipe: boolean, skipUpsell = false) => {
+    // Upsell only for Storyteller & Keepsake, only when recipe not already chosen
+    if ((plan.name === 'The Storyteller' || plan.name === 'The Keepsake') && !includeRecipe && !skipUpsell) {
+      setPendingPlan(plan);
+      setShowRecipeUpsell(true);
       return;
     }
 
-    // In production, this would send an email via backend API
-    // Gift link would be: https://beforeigo.app/gift-access?token=...
-    const giftLink = `${window.location.origin}/gift-access?token=gift_${Date.now()}`;
+    setIsProcessing(true);
+    try {
+      const paymentLinks: Record<string, string> = {
+        'The Storyteller': includeRecipe
+          ? 'https://buy.stripe.com/8x2cMYe3n4UF2u1d4b3gk06'
+          : 'https://buy.stripe.com/28EfZa2kF86Rd8F2px3gk03',
+        'The Keepsake': includeRecipe
+          ? 'https://buy.stripe.com/8x24gs5wR9aVfgNd4b3gk07'
+          : 'https://buy.stripe.com/28E14g8J30Epb0xd4b3gk04',
+        'The Legacy': 'https://buy.stripe.com/7sYbIUbVfaeZc4B0hp3gk05',
+      };
+      const paymentLink = paymentLinks[plan.name];
+      if (!paymentLink) throw new Error('Payment link not found');
 
-    console.log('Mock sending gift email:', {
-      to: giftEmail,
-      message: giftMessage,
-      gift_link: giftLink,
-      production_link: `https://beforeigo.app/gift-access?token=gift_${Date.now()}`
-    });
+      const planParam = plan.name.toLowerCase().replace(/\s+/g, '');
+      const successUrl = encodeURIComponent(`https://app.beforeigo.app/gift-choice?plan=${planParam}${includeRecipe ? '_recipe' : ''}&session_id={CHECKOUT_SESSION_ID}`);
+      window.location.href = `${paymentLink}?prefilled_email={CUSTOMER_EMAIL}&success_url=${successUrl}`;
+    } catch (error) {
+      console.error('Checkout failed:', error);
+      alert('Failed to start checkout. Please try again.');
+      setIsProcessing(false);
+    }
+  };
 
-    // Show success modal
-    setShowGiftForm(false);
-    setShowGiftSuccess(true);
+  const handleRecipeAccept = () => {
+    setShowRecipeUpsell(false);
+    if (pendingPlan) handleCheckout(pendingPlan, true, true);
+  };
+
+  const handleRecipeDecline = () => {
+    setShowRecipeUpsell(false);
+    if (pendingPlan) handleCheckout(pendingPlan, false, true);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Modals */}
-     <RecipeUpsellModal
-       isOpen={showRecipeUpsell}
-       plan={pendingPlan || plans[0]}
-       onAccept={handleRecipeAccept}
-       onDecline={handleRecipeDecline}
-       onClose={() => {
-  setShowRecipeUpsell(false);
-  setRecipeDeclined(false);
-}}
-      />
-      <RecipientSelectionModal
-        isOpen={showRecipientSelection}
-        onForMyself={handleForMyself}
-        onForSomeoneElse={handleForSomeoneElse}
-      />
-      <GiftFormModal
-        isOpen={showGiftForm}
-        giftEmail={giftEmail}
-        giftMessage={giftMessage}
-        onEmailChange={setGiftEmail}
-        onMessageChange={setGiftMessage}
-        onSend={handleSendGift}
-        onCancel={() => setShowGiftForm(false)}
-      />
-      <GiftSuccessModal
-        isOpen={showGiftSuccess}
-        giftEmail={giftEmail}
-        giftMessage={giftMessage}
-        onClose={() => navigate('/')}
+    <div className="min-h-screen" style={{ backgroundColor: CREAM }}>
+      <RecipeUpsellModal
+        isOpen={showRecipeUpsell}
+        plan={pendingPlan || plans[0]}
+        onAccept={handleRecipeAccept}
+        onDecline={handleRecipeDecline}
+        onClose={() => setShowRecipeUpsell(false)}
       />
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-12">
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-serif font-bold text-slate-900 mb-4">
+      <div className="max-w-6xl mx-auto px-6 py-16">
+        {/* Header */}
+        <div className="text-center mb-14">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Heart className="h-5 w-5" style={{ color: BURGUNDY }} />
+            <span className="text-sm font-bold uppercase tracking-widest" style={{ color: BURGUNDY }}>Before I Go</span>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ ...serif, color: INK }}>
             Choose Your Story Plan
           </h1>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+          <p className="text-lg" style={{ color: MUTE }}>
             One-time payment. Lifetime access. No subscriptions.
           </p>
         </div>
 
-        {/* Plans Grid */}
-        <div className="grid md:grid-cols-3 gap-8 mb-16 max-w-7xl mx-auto">
-          {plans.map((plan, index) => {
-            const IconComponent = plan.icon;
-            const isSelected = selectedPlan?.name === plan.name;
-            
+        {/* Plans */}
+        <div className="grid md:grid-cols-3 gap-6 mb-20">
+          {plans.map((plan) => {
+            const Icon = plan.icon;
             return (
               <div
                 key={plan.name}
-                className={`relative bg-white rounded-2xl shadow-lg border-2 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 flex flex-col ${
-                  plan.popular
-                    ? 'border-rose-200 ring-2 ring-rose-100'
-                    : isSelected
-                    ? 'border-blue-300 ring-2 ring-blue-100'
-                    : 'border-slate-200 hover:border-slate-300'
-                }`}
+                className="relative bg-white rounded-2xl flex flex-col transition-all duration-300 hover:-translate-y-1"
+                style={{
+                  border: `2px solid ${plan.popular ? BURGUNDY : BORDER}`,
+                  boxShadow: '0 4px 6px -1px rgba(143, 17, 51, 0.08)',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(143, 17, 51, 0.18)')}
+                onMouseLeave={(e) => (e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(143, 17, 51, 0.08)')}
               >
                 {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <div className="bg-gradient-to-r from-rose-500 to-pink-500 text-white px-6 py-2 rounded-full text-sm font-semibold shadow-lg">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <div className="px-4 py-1 rounded-full text-xs font-semibold text-white" style={{ backgroundColor: BURGUNDY }}>
                       Most Popular
                     </div>
                   </div>
                 )}
 
                 <div className="p-8 flex flex-col flex-grow">
-                  <div className="flex items-center justify-center mb-4">
-                    <div className={`p-3 rounded-2xl bg-gradient-to-br ${
-                      plan.color === 'rose' ? 'from-rose-500 to-pink-500' :
-                      plan.color === 'amber' ? 'from-amber-500 to-orange-500' :
-                      'from-slate-500 to-slate-600'
-                    }`}>
-                      <IconComponent className="h-7 w-7 text-white" />
-                    </div>
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5" style={{ backgroundColor: TILE }}>
+                    <Icon className="h-7 w-7" style={{ color: BURGUNDY }} />
                   </div>
 
-                  <h3 className="text-2xl font-bold text-slate-900 text-center mb-3">
-                    {plan.name}
-                  </h3>
+                  <h3 className="text-2xl font-bold mb-2" style={{ ...serif, color: INK }}>{plan.name}</h3>
+                  <p className="text-sm mb-6 leading-snug min-h-[40px]" style={{ color: MUTE }}>{plan.subtitle}</p>
 
-                  <p className="text-sm text-slate-600 text-center mb-6 leading-snug min-h-[40px]">
-                    {plan.subtitle}
-                  </p>
-
-                  <div className="text-center mb-8">
-                    <div className="text-5xl font-bold text-slate-900 mb-1">${plan.price}</div>
-                    <div className="text-sm text-slate-500">one-time payment</div>
+                  <div className="mb-6">
+                    <span className="text-4xl font-bold" style={{ color: INK }}>${plan.price}</span>
+                    <span className="text-sm ml-2" style={{ color: MUTE }}>one-time</span>
                   </div>
 
                   <ul className="space-y-3 mb-8 flex-grow">
-                    {plan.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-start">
-                        <Check className="h-4 w-4 text-green-500 mt-1 mr-2 flex-shrink-0" />
-                        <span className="text-slate-700 text-sm leading-snug">{feature}</span>
+                    {plan.features.map((feature, i) => (
+                      <li key={i} className="flex items-start gap-2.5">
+                        <div className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center mt-0.5" style={{ backgroundColor: TILE }}>
+                          <Check className="h-3 w-3" style={{ color: BURGUNDY }} />
+                        </div>
+                        <span className="text-sm leading-snug" style={{ color: INK }}>{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -598,24 +266,23 @@ const handleRecipeDecline = () => {
                   <button
                     onClick={() => {
                       setSelectedPlan(plan);
-                      handleCheckout(plan, includeRecipeBook);
+                      handleCheckout(plan, false);
                     }}
                     disabled={isProcessing}
-                    className={`w-full py-4 rounded-xl font-semibold transition-all duration-200 ${
-                      plan.popular
-                        ? 'bg-gradient-to-r from-rose-600 to-pink-600 text-white hover:from-rose-700 hover:to-pink-700 shadow-lg hover:shadow-xl'
-                        : 'bg-slate-900 text-white hover:bg-slate-800'
-                    } ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className="w-full py-3.5 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                    style={{ backgroundColor: BURGUNDY }}
+                    onMouseEnter={(e) => !isProcessing && (e.currentTarget.style.backgroundColor = BURGUNDY_DARK)}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = BURGUNDY)}
                   >
                     {isProcessing && selectedPlan?.name === plan.name ? (
-                      <div className="flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                        Processing...
-                      </div>
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                        Processing…
+                      </>
                     ) : (
                       <>
-                        Choose {plan.name}
-                        <ArrowRight className="inline-block ml-2 h-5 w-5" />
+                        Choose {plan.name.replace('The ', '')}
+                        <ArrowRight className="h-5 w-5" />
                       </>
                     )}
                   </button>
@@ -625,145 +292,102 @@ const handleRecipeDecline = () => {
           })}
         </div>
 
-        {/* Physical Journal Section */}
-        <div className="max-w-4xl mx-auto mb-16 transform scale-90 origin-top">
+        {/* Physical Journal */}
+        <div className="max-w-4xl mx-auto mb-20">
           <div className="text-center mb-8">
-            <h2 className="text-3xl md:text-4xl font-serif text-slate-900 mb-3">
-              Not Ready to Go Digital?
-            </h2>
-            <p className="text-lg text-slate-600">
-              Perfect for those who prefer pen and paper
-            </p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-3" style={{ ...serif, color: INK }}>Prefer Pen and Paper?</h2>
+            <p className="text-lg" style={{ color: MUTE }}>A printed journal for those who'd rather write by hand</p>
           </div>
 
-          <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl shadow-xl overflow-hidden border-2 border-amber-200">
+          <div className="bg-white rounded-3xl overflow-hidden" style={{ border: `1px solid ${BORDER}`, boxShadow: '0 10px 30px -10px rgba(143, 17, 51, 0.15)' }}>
             <div className="md:flex">
-              {/* Image/Visual Side */}
-              <div className="md:w-2/5 bg-gradient-to-br from-amber-100 to-orange-100 p-8 flex items-center justify-center">
+              <div className="md:w-2/5 p-10 flex items-center justify-center" style={{ backgroundColor: TILE }}>
                 <div className="text-center">
-                  <div className="inline-flex p-6 bg-gradient-to-br from-amber-600 to-orange-600 rounded-3xl shadow-2xl mb-4">
-                    <BookOpen className="h-20 w-20 text-white" />
+                  <div className="inline-flex p-6 rounded-3xl mb-4" style={{ backgroundColor: BURGUNDY }}>
+                    <BookOpen className="h-16 w-16 text-white" />
                   </div>
-                  <div className="text-sm font-medium text-amber-900 bg-white/70 backdrop-blur-sm px-4 py-2 rounded-full inline-block">
-                    Ships in 3-5 business days
+                  <div className="text-sm font-medium px-4 py-2 rounded-full inline-block" style={{ backgroundColor: 'white', color: BURGUNDY }}>
+                    Ships in 3–5 business days
                   </div>
                 </div>
               </div>
 
-              {/* Content Side */}
               <div className="md:w-3/5 p-8">
-                <h3 className="text-2xl font-bold text-slate-900 mb-3">
-                  Physical Question Journal
-                </h3>
-                <p className="text-slate-700 mb-6 leading-relaxed">
-                  A beautiful printed journal with all our thoughtful questions, designed for anyone who prefers handwriting their memories.
+                <h3 className="text-2xl font-bold mb-3" style={{ ...serif, color: INK }}>Physical Question Journal</h3>
+                <p className="mb-6 leading-relaxed" style={{ color: MUTE }}>
+                  A beautiful printed journal with all our thoughtful questions, made for anyone who prefers handwriting their memories.
                 </p>
-
-                <ul className="space-y-3 mb-8">
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-amber-600 mt-0.5 mr-3 flex-shrink-0" />
-                    <span className="text-slate-700">72 guided questions for any family role</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-amber-600 mt-0.5 mr-3 flex-shrink-0" />
-                    <span className="text-slate-700">Premium cream pages with space to write</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-amber-600 mt-0.5 mr-3 flex-shrink-0" />
-                    <span className="text-slate-700">Inspirational quotes for each chapter</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-amber-600 mt-0.5 mr-3 flex-shrink-0" />
-                    <span className="text-slate-700">No tech needed—just a pen and your memories</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-amber-600 mt-0.5 mr-3 flex-shrink-0" />
-                    <span className="text-slate-700">Available as Paperback or Hardcover</span>
-                  </li>
+                <ul className="space-y-2.5 mb-8">
+                  {['72 guided questions for any family role', 'Premium cream pages with space to write', 'Inspirational quotes for each chapter', 'No tech needed — just a pen', 'Available as Paperback or Hardcover'].map((item) => (
+                    <li key={item} className="flex items-start gap-2.5">
+                      <div className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center mt-0.5" style={{ backgroundColor: TILE }}>
+                        <Check className="h-3 w-3" style={{ color: BURGUNDY }} />
+                      </div>
+                      <span className="text-sm" style={{ color: INK }}>{item}</span>
+                    </li>
+                  ))}
                 </ul>
-
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center justify-between flex-wrap gap-4">
                   <div>
-                    <div className="text-sm text-slate-600 mb-1">Starting at</div>
-                    <div className="text-3xl font-bold text-slate-900">$29</div>
+                    <div className="text-sm" style={{ color: MUTE }}>Starting at</div>
+                    <div className="text-3xl font-bold" style={{ color: INK }}>$29</div>
                   </div>
-<a href="https://buy.stripe.com/4gMaEQ1gBdrbd8F8NV3gk02"
-  className="bg-gradient-to-r from-amber-600 to-orange-600 text-white px-8 py-4 rounded-xl font-semibold hover:from-amber-700 hover:to-orange-700 transition-all shadow-lg hover:shadow-xl flex items-center space-x-2"
->
-  <Package className="h-5 w-5" />
-  <span>Order Physical Journal</span>
-<ArrowRight className="h-5 w-5" />
-</a>
+                  <a
+                    href="https://buy.stripe.com/4gMaEQ1gBdrbd8F8NV3gk02"
+                    className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-white transition-colors"
+                    style={{ backgroundColor: BURGUNDY }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = BURGUNDY_DARK)}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = BURGUNDY)}
+                  >
+                    <Package className="h-5 w-5" />
+                    <span>Order Journal</span>
+                    <ArrowRight className="h-5 w-5" />
+                  </a>
                 </div>
-                
-                <p className="text-xs text-slate-500 italic">
-                  Printed on-demand and shipped directly to you. Each journal is custom-made for the role you choose.
-                </p>
               </div>
             </div>
           </div>
 
-          {/* Benefits row */}
           <div className="grid md:grid-cols-3 gap-6 mt-8">
-            <div className="bg-white rounded-xl p-6 shadow-md text-center">
-              <div className="inline-flex p-3 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl mb-2">
-                <Users className="h-8 w-8 text-purple-600" />
+            {[
+              { icon: Users, text: 'Perfect for grandparents who prefer handwriting' },
+              { icon: Heart, text: 'A gift they can hold in their hands' },
+              { icon: BookHeart, text: 'No apps, no passwords — just memories' },
+            ].map(({ icon: Ico, text }) => (
+              <div key={text} className="bg-white rounded-xl p-6 text-center" style={{ border: `1px solid ${BORDER}` }}>
+                <div className="inline-flex w-12 h-12 rounded-xl items-center justify-center mb-3" style={{ backgroundColor: TILE }}>
+                  <Ico className="h-6 w-6" style={{ color: BURGUNDY }} />
+                </div>
+                <p className="text-sm font-medium" style={{ color: INK }}>{text}</p>
               </div>
-              <p className="text-sm text-slate-700 font-medium">Perfect for grandparents who prefer handwriting</p>
-            </div>
-            <div className="bg-white rounded-xl p-6 shadow-md text-center">
-              <div className="inline-flex p-3 bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl mb-2">
-                <Heart className="h-8 w-8 text-amber-600" />
-              </div>
-              <p className="text-sm text-slate-700 font-medium">Give a gift they can hold in their hands</p>
-            </div>
-            <div className="bg-white rounded-xl p-6 shadow-md text-center">
-              <div className="inline-flex p-3 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-xl mb-2">
-                <BookHeart className="h-8 w-8 text-blue-600" />
-              </div>
-              <p className="text-sm text-slate-700 font-medium">No apps, no passwords—just memories</p>
-            </div>
+            ))}
           </div>
         </div>
 
         {/* Testimonials */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-16">
-          <h2 className="text-3xl font-serif text-slate-900 text-center mb-8">
-            What Our Customers Say
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div key={index} className="text-center">
-                <div className="flex justify-center mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
-                  ))}
-                </div>
-                <p className="text-slate-700 mb-4 italic">"{testimonial.text}"</p>
-                <p className="font-semibold text-slate-900">- {testimonial.name}</p>
+        <div className="mb-20">
+          <h2 className="text-3xl font-bold text-center mb-10" style={{ ...serif, color: INK }}>What Families Say</h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            {testimonials.map((t) => (
+              <div key={t.name} className="bg-white rounded-2xl p-7" style={{ border: `1px solid ${BORDER}` }}>
+                <p className="mb-5 leading-relaxed italic" style={{ color: INK }}>"{t.text}"</p>
+                <p className="text-sm font-semibold" style={{ color: BURGUNDY }}>— {t.name}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* Guarantees */}
-        <div className="grid md:grid-cols-3 gap-8">
-          {guarantees.map((guarantee, index) => {
-            const IconComponent = guarantee.icon;
-            return (
-              <div key={index} className="bg-white rounded-2xl shadow-lg p-8 text-center">
-                <div className="inline-flex p-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl mb-4">
-                  <IconComponent className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold text-slate-900 mb-2">
-                  {guarantee.title}
-                </h3>
-                <p className="text-slate-600">
-                  {guarantee.description}
-                </p>
+        <div className="grid md:grid-cols-3 gap-6">
+          {guarantees.map(({ icon: Ico, title, description }) => (
+            <div key={title} className="text-center px-6">
+              <div className="inline-flex w-14 h-14 rounded-2xl items-center justify-center mb-4" style={{ backgroundColor: TILE }}>
+                <Ico className="h-7 w-7" style={{ color: BURGUNDY }} />
               </div>
-            );
-          })}
+              <h3 className="text-lg font-bold mb-2" style={{ ...serif, color: INK }}>{title}</h3>
+              <p className="text-sm leading-relaxed" style={{ color: MUTE }}>{description}</p>
+            </div>
+          ))}
         </div>
       </div>
     </div>
