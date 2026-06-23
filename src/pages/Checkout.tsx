@@ -93,48 +93,70 @@ const RecipeUpsellModal: React.FC<RecipeUpsellModalProps> = ({ isOpen, plan, onA
   const addOnPrice = 5;
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="relative max-w-md w-full rounded-3xl overflow-hidden" style={{ boxShadow: '0 25px 50px -12px rgba(143, 17, 51, 0.4)' }}>
-        <div className="absolute inset-0 rounded-3xl z-0" style={{ background: 'linear-gradient(135deg, #8f1133, #FAF7F2, #8f1133, #FAF7F2)', backgroundSize: '300% 300%', animation: 'gradientShift 3s ease infinite', padding: '2px' }} />
-        <div className="relative z-10 bg-white rounded-3xl overflow-hidden">
-          <div className="relative px-8 pt-8 pb-6 text-center" style={{ backgroundColor: BURGUNDY }}>
-            <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full text-white opacity-70 hover:opacity-100">
-              <X className="h-5 w-5" />
-            </button>
-            <div className="flex items-center justify-center gap-2 mb-3">
-              <Sparkles className="h-5 w-5 text-yellow-300 fill-yellow-300" />
-              <span className="text-yellow-300 text-xs font-bold uppercase tracking-widest">One-Time Offer</span>
-              <Sparkles className="h-5 w-5 text-yellow-300 fill-yellow-300" />
-            </div>
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}>
-              <ChefHat className="h-8 w-8 text-white" />
-            </div>
-            <h2 className="text-2xl font-bold text-white mb-1" style={serif}>Preserve Your Family's Recipes Forever</h2>
-            <p className="text-white opacity-80 text-sm">Add your Recipe Book for only ${addOnPrice} — save ${savings} vs. buying separately</p>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div
+        className="relative max-w-md w-full bg-white rounded-3xl overflow-hidden"
+        style={{ border: `1px solid ${BORDER}`, boxShadow: '0 25px 50px -12px rgba(143, 17, 51, 0.25)' }}
+      >
+        <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full z-10 transition-colors" style={{ color: MUTE }}>
+          <X className="h-5 w-5" />
+        </button>
+
+        <div className="px-8 pt-10 pb-6 text-center">
+          {/* Quiet limited-offer label */}
+          <div
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full mb-5"
+            style={{ backgroundColor: TILE }}
+          >
+            <Sparkles className="h-3.5 w-3.5" style={{ color: BURGUNDY }} />
+            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: BURGUNDY }}>
+              Limited one-time offer
+            </span>
           </div>
-          <div className="px-8 py-6">
-            <ul className="space-y-2 mb-6">
-              {['Save unlimited family recipes', 'Add photos to each recipe', 'Organize by category', 'Beautiful printable format', 'Preserve for generations'].map((item) => (
-                <li key={item} className="flex items-center gap-3 text-sm" style={{ color: INK }}>
-                  <div className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: TILE }}>
-                    <Check className="h-3 w-3" style={{ color: BURGUNDY }} />
-                  </div>
-                  {item}
-                </li>
-              ))}
-            </ul>
-            <button onClick={onAccept} className="w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 mb-3 transition-colors" style={{ backgroundColor: BURGUNDY }}>
-              <ChefHat className="h-5 w-5" />
-              <span>Add Recipe Book for ${addOnPrice}</span>
-              <ArrowRight className="h-5 w-5" />
-            </button>
-            <button onClick={onDecline} className="w-full py-3 text-sm" style={{ color: MUTE }}>
-              No thanks, just {plan.name} for ${plan.price}
-            </button>
+
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ backgroundColor: TILE }}>
+            <ChefHat className="h-8 w-8" style={{ color: BURGUNDY }} />
           </div>
+
+          <h2 className="text-2xl font-bold mb-2" style={{ ...serif, color: INK }}>
+            Preserve Your Family's Recipes Forever
+          </h2>
+          <p className="text-sm" style={{ color: MUTE }}>
+            Add your Recipe Book for only{' '}
+            <span className="font-semibold" style={{ color: BURGUNDY }}>${addOnPrice}</span>{' '}
+            — save ${savings} vs. buying it separately
+          </p>
+        </div>
+
+        <div className="px-8 pb-8">
+          <ul className="space-y-2.5 mb-7">
+            {['Save unlimited family recipes', 'Add photos to each recipe', 'Organize by category', 'Beautiful printable format', 'Preserved for generations'].map((item) => (
+              <li key={item} className="flex items-center gap-3 text-sm" style={{ color: INK }}>
+                <div className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: TILE }}>
+                  <Check className="h-3 w-3" style={{ color: BURGUNDY }} />
+                </div>
+                {item}
+              </li>
+            ))}
+          </ul>
+
+          <button
+            onClick={onAccept}
+            className="w-full py-4 rounded-xl font-semibold text-white flex items-center justify-center gap-2 mb-2 transition-colors"
+            style={{ backgroundColor: BURGUNDY }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = BURGUNDY_DARK)}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = BURGUNDY)}
+          >
+            <ChefHat className="h-5 w-5" />
+            <span>Add Recipe Book for ${addOnPrice}</span>
+            <ArrowRight className="h-5 w-5" />
+          </button>
+
+          <button onClick={onDecline} className="w-full py-3 text-sm transition-colors" style={{ color: MUTE }}>
+            No thanks, just {plan.name} for ${plan.price}
+          </button>
         </div>
       </div>
-      <style>{`@keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }`}</style>
     </div>
   );
 };
